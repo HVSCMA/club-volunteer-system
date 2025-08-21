@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Work Hours - Volunteer Signup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Verification Status Indicator -->
+    <div id="verification-status" class="verification-status" style="display: none;">
+        <i class="fas fa-check-circle"></i>
+        Club Member Verified
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <i class="fas fa-users header-icon"></i>
+                <h1 id="event-title">Club Work Hours</h1>
+                <h2 id="event-subtitle">Volunteer Signup</h2>
+                <p id="event-date" class="subtitle"></p>
+            </div>
+        </header>
+
+        <!-- Event Overview -->
+        <section class="event-info">
+            <div class="info-card">
+                <h2><i class="fas fa-info-circle"></i> Event Overview</h2>
+                <p id="event-description">Loading event details...</p>
+                <div id="event-schedule">
+                    <h3><i class="fas fa-calendar-alt"></i> <span id="event-time">Schedule</span></h3>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Volunteers Display -->
+        <section class="current-signups">
+            <h2><i class="fas fa-users"></i> Current Volunteers</h2>
+            <p class="team-intro">See who's already committed and what roles still need help!</p>
+            <div id="tasks-container">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Loading current volunteers...
+                </div>
+            </div>
+        </section>
+
+        <!-- Signup Form -->
+        <section class="signup-form-section">
+            <h2><i class="fas fa-hand-paper"></i> Join the Team!</h2>
+            <div class="member-verification-notice">
+                <i class="fas fa-shield-alt"></i>
+                <strong>Club Members:</strong> You'll need to verify your membership with the gate code to sign up.
+            </div>
+            <form id="signup-form" class="signup-form">
+                <div class="form-group">
+                    <label for="member_name">
+                        <i class="fas fa-user"></i>
+                        Your Name *
+                    </label>
+                    <input type="text" id="member_name" name="member_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        Email Address *
+                    </label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">
+                        <i class="fas fa-phone"></i>
+                        Phone Number (optional)
+                    </label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+
+                <div class="form-group">
+                    <label for="work_role">
+                        <i class="fas fa-tasks"></i>
+                        Choose Your Task *
+                    </label>
+                    <select id="work_role" name="work_role" required>
+                        <option value="">Select a task...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">
+                        <i class="fas fa-comment"></i>
+                        Notes (optional)
+                    </label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Any special requests or notes..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check"></i>
+                    Count Me In!
+                </button>
+            </form>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Thank you for your commitment to our club! 🌟</p>
+            <p class="club-name">Club Work Hours</p>
+            <p class="contact-info">Questions? Contact the event organizer</p>
+
+            <div class="organizer-tools">
+                <a href="/admin" class="admin-link">Event Setup</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h3>Thank You!</h3>
+            <p>You've successfully signed up to volunteer. We'll send you more details closer to the event.</p>
+            <button onclick="closeModal()" class="modal-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-exclamation-triangle error-icon"></i>
+            <h3>Oops!</h3>
+            <p id="error-message">There was an error with your signup. Please try again.</p>
+            <button onclick="closeErrorModal()" class="modal-btn">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Gate Code Verification Modal -->
+    <div id="gate-code-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-key gate-icon"></i>
+            <h3>Club Member Verification</h3>
+            <p>Please enter the club gate code to continue:</p>
+            <div class="gate-code-form">
+                <input type="password" id="gate-code-input" placeholder="Enter gate code..." maxlength="4" autocomplete="off">
+                <div class="gate-code-error" id="gate-code-error" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    Incorrect gate code. Please try again.
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeGateCodeModal()" class="modal-btn cancel-btn">Cancel</button>
+                <button onclick="verifyGateCode()" class="modal-btn verify-btn">Verify</button>
+            </div>
+            <p class="gate-code-help">
+                <i class="fas fa-info-circle"></i>
+                This is the same code used at the main entrance.
+            </p>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-trash-alt delete-icon"></i>
+            <h3>Remove Volunteer?</h3>
+            <p id="delete-message">Are you sure you want to remove this volunteer signup?</p>
+            <div class="delete-volunteer-info">
+                <strong id="delete-volunteer-name"></strong><br>
+                <span id="delete-volunteer-role"></span>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="closeDeleteModal()" class="modal-btn cancel-btn">Cancel</button>
+                <button onclick="confirmDelete()" class="modal-btn delete-btn">Yes, Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
