@@ -1,0 +1,34 @@
+{
+  "id": "spring-cleanup-2024",
+  "name": "Spring Cleanup & Maintenance",
+  "date": "2024-04-15",
+  "time": "9:00 AM - 4:00 PM",
+  "description": "Join us for our spring work day! Help maintain our beautiful club facilities with landscaping, cleaning, and general maintenance tasks. Every helping hand makes a difference!",
+  "organizerEmail": "organizer@club.com",
+  "tasks": [
+    {
+      "id": "landscaping",
+      "name": "Landscaping & Grounds",
+      "needed": 6,
+      "volunteers": []
+    },
+    {
+      "id": "maintenance",
+      "name": "General Maintenance",
+      "needed": 4,
+      "volunteers": []
+    },
+    {
+      "id": "cleaning",
+      "name": "Clubhouse Cleaning",
+      "needed": 3,
+      "volunteers": []
+    },
+    {
+      "id": "painting",
+      "name": "Touch-up Painting",
+      "needed": 2,
+      "volunteers": []
+    }
+  ]
+}
