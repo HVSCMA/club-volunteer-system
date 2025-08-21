@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Setup - Club Volunteer System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header admin-header">
+            <div class="header-content">
+                <i class="fas fa-cog header-icon"></i>
+                <h1>Event Setup</h1>
+                <h2>Organizer Admin Panel</h2>
+            </div>
+        </header>
+
+        <!-- Admin Login -->
+        <div id="admin-login" class="admin-login-section">
+            <div class="login-card">
+                <h2><i class="fas fa-shield-alt"></i> Organizer Access</h2>
+                <div class="form-group">
+                    <label for="admin-password">
+                        <i class="fas fa-key"></i>
+                        Enter Password
+                    </label>
+                    <input type="password" id="admin-password" placeholder="Password" maxlength="4">
+                    <div class="password-error" id="password-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Incorrect password. Please try again.
+                    </div>
+                </div>
+                <button onclick="verifyAdminPassword()" class="admin-login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Access Admin Panel
+                </button>
+                <div class="back-link">
+                    <a href="/" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Volunteer Signup
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel (Hidden by default) -->
+        <div id="admin-panel" style="display: none;">
+            <!-- Event Configuration -->
+            <section class="admin-section">
+                <h2><i class="fas fa-calendar-alt"></i> Event Configuration</h2>
+                <form id="event-form" class="admin-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-name">Event Name</label>
+                            <input type="text" id="event-name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="event-date">Event Date</label>
+                            <input type="date" id="event-date" name="date" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="event-time">Event Time</label>
+                        <input type="text" id="event-time" name="time" placeholder="e.g., 9:00 AM - 4:00 PM" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="event-description">Event Description</label>
+                        <textarea id="event-description" name="description" rows="3" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="organizer-email">Organizer Email</label>
+                        <input type="email" id="organizer-email" name="organizerEmail" required>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Task Management -->
+            <section class="admin-section">
+                <h2><i class="fas fa-tasks"></i> Task Management</h2>
+                <div id="tasks-admin">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading tasks...
+                    </div>
+                </div>
+                <button onclick="addNewTask()" class="add-task-btn">
+                    <i class="fas fa-plus"></i>
+                    Add New Task
+                </button>
+            </section>
+
+            <!-- Current Volunteers -->
+            <section class="admin-section">
+                <h2><i class="fas fa-users"></i> Current Volunteers</h2>
+                <div id="volunteers-admin">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        Loading volunteers...
+                    </div>
+                </div>
+                <button onclick="printVolunteerList()" class="print-btn">
+                    <i class="fas fa-print"></i>
+                    Print Volunteer List
+                </button>
+            </section>
+
+            <!-- Save Configuration -->
+            <section class="admin-section">
+                <button onclick="saveEventConfiguration()" class="save-config-btn">
+                    <i class="fas fa-save"></i>
+                    Save Event Configuration
+                </button>
+            </section>
+
+            <!-- Navigation -->
+            <div class="admin-nav">
+                <a href="/" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Volunteer Signup
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h3>Configuration Saved!</h3>
+            <p>Event configuration has been updated successfully.</p>
+            <button onclick="closeModal()" class="modal-btn">Close</button>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-exclamation-triangle error-icon"></i>
+            <h3>Error</h3>
+            <p id="error-message">There was an error saving the configuration.</p>
+            <button onclick="closeErrorModal()" class="modal-btn">Try Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Admin-specific JavaScript
+        let currentEventData = null;
+        const ORGANIZER_GATE_CODE = '5791';
+
+        // Verify admin password
+        function verifyAdminPassword() {
+            const password = document.getElementById('admin-password').value;
+            const errorDiv = document.getElementById('password-error');
+
+            if (password === ORGANIZER_GATE_CODE) {
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                loadEventData();
+                errorDiv.style.display = 'none';
+            } else {
+                errorDiv.style.display = 'block';
+                document.getElementById('admin-password').value = '';
+            }
+        }
+
+        // Load event data
+        async function loadEventData() {
+            try {
+                const response = await fetch('/api/event');
+                currentEventData = await response.json();
+
+                // Populate form fields
+                document.getElementById('event-name').value = currentEventData.name || '';
+                document.getElementById('event-date').value = currentEventData.date || '';
+                document.getElementById('event-time').value = currentEventData.time || '';
+                document.getElementById('event-description').value = currentEventData.description || '';
+                document.getElementById('organizer-email').value = currentEventData.organizerEmail || '';
+
+                displayTasks();
+                displayVolunteers();
+            } catch (error) {
+                console.error('Error loading event data:', error);
+            }
+        }
+
+        // Display tasks
+        function displayTasks() {
+            const container = document.getElementById('tasks-admin');
+            if (!currentEventData.tasks) {
+                container.innerHTML = '<p>No tasks configured</p>';
+                return;
+            }
+
+            container.innerHTML = currentEventData.tasks.map((task, index) => `
+                <div class="task-item">
+                    <div class="task-details">
+                        <input type="text" value="${task.name}" onchange="updateTaskName(${index}, this.value)" placeholder="Task name">
+                        <input type="number" value="${task.needed}" onchange="updateTaskNeeded(${index}, this.value)" min="1" max="20" placeholder="Volunteers needed">
+                        <span class="volunteer-count">${task.volunteers.length}/${task.needed} volunteers</span>
+                    </div>
+                    <button onclick="removeTask(${index})" class="remove-task-btn">×</button>
+                </div>
+            `).join('');
+        }
+
+        // Display volunteers
+        function displayVolunteers() {
+            const container = document.getElementById('volunteers-admin');
+            if (!currentEventData.tasks) {
+                container.innerHTML = '<p>No volunteers yet</p>';
+                return;
+            }
+
+            let html = '';
+            currentEventData.tasks.forEach(task => {
+                html += `<div class="volunteer-group">
+                    <h3>${task.name} (${task.volunteers.length}/${task.needed})</h3>`;
+
+                if (task.volunteers.length > 0) {
+                    html += task.volunteers.map(volunteer => `
+                        <div class="volunteer-item">
+                            <div class="volunteer-info">
+                                <strong>${volunteer.name}</strong><br>
+                                ${volunteer.email}${volunteer.phone ? ` • ${volunteer.phone}` : ''}
+                                ${volunteer.notes ? `<br><em>${volunteer.notes}</em>` : ''}
+                            </div>
+                            <small>Signed up: ${new Date(volunteer.signupTime).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+                } else {
+                    html += '<p class="no-volunteers">No volunteers yet</p>';
+                }
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Task management functions
+        function updateTaskName(index, name) {
+            currentEventData.tasks[index].name = name;
+        }
+
+        function updateTaskNeeded(index, needed) {
+            currentEventData.tasks[index].needed = parseInt(needed);
+            displayTasks();
+        }
+
+        function addNewTask() {
+            if (!currentEventData.tasks) currentEventData.tasks = [];
+
+            const newTask = {
+                id: 'task_' + Date.now(),
+                name: 'New Task',
+                needed: 2,
+                volunteers: []
+            };
+
+            currentEventData.tasks.push(newTask);
+            displayTasks();
+        }
+
+        function removeTask(index) {
+            if (confirm('Are you sure you want to remove this task? All associated volunteers will be removed.')) {
+                currentEventData.tasks.splice(index, 1);
+                displayTasks();
+                displayVolunteers();
+            }
+        }
+
+        // Save event configuration
+        async function saveEventConfiguration() {
+            try {
+                // Update event data with form values
+                currentEventData.name = document.getElementById('event-name').value;
+                currentEventData.date = document.getElementById('event-date').value;
+                currentEventData.time = document.getElementById('event-time').value;
+                currentEventData.description = document.getElementById('event-description').value;
+                currentEventData.organizerEmail = document.getElementById('organizer-email').value;
+
+                const response = await fetch('/api/event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        gateCode: ORGANIZER_GATE_CODE,
+                        eventData: currentEventData
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('success-modal').style.display = 'flex';
+                } else {
+                    const error = await response.json();
+                    document.getElementById('error-message').textContent = error.error || 'Failed to save configuration';
+                    document.getElementById('error-modal').style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                document.getElementById('error-message').textContent = 'Network error occurred';
+                document.getElementById('error-modal').style.display = 'flex';
+            }
+        }
+
+        // Print volunteer list
+        function printVolunteerList() {
+            const printWindow = window.open('', '_blank');
+            let printContent = `
+                <html>
+                <head>
+                    <title>Volunteer List - ${currentEventData.name}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1, h2 { color: #2563eb; }
+                        .task-group { margin-bottom: 30px; }
+                        .volunteer { margin: 10px 0; padding: 10px; border-left: 3px solid #2563eb; }
+                        .event-info { background: #f3f4f6; padding: 15px; margin-bottom: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="event-info">
+                        <h1>${currentEventData.name}</h1>
+                        <p><strong>Date:</strong> ${currentEventData.date}</p>
+                        <p><strong>Time:</strong> ${currentEventData.time}</p>
+                    </div>
+            `;
+
+            currentEventData.tasks.forEach(task => {
+                printContent += `
+                    <div class="task-group">
+                        <h2>${task.name} (${task.volunteers.length}/${task.needed} volunteers)</h2>
+                `;
+
+                if (task.volunteers.length > 0) {
+                    task.volunteers.forEach(volunteer => {
+                        printContent += `
+                            <div class="volunteer">
+                                <strong>${volunteer.name}</strong><br>
+                                Email: ${volunteer.email}<br>
+                                ${volunteer.phone ? `Phone: ${volunteer.phone}<br>` : ''}
+                                ${volunteer.notes ? `Notes: ${volunteer.notes}<br>` : ''}
+                                <small>Signed up: ${new Date(volunteer.signupTime).toLocaleString()}</small>
+                            </div>
+                        `;
+                    });
+                } else {
+                    printContent += '<p>No volunteers yet</p>';
+                }
+
+                printContent += '</div>';
+            });
+
+            printContent += '</body></html>';
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Modal functions
+        function closeModal() {
+            document.getElementById('success-modal').style.display = 'none';
+        }
+
+        function closeErrorModal() {
+            document.getElementById('error-modal').style.display = 'none';
+        }
+
+        // Allow Enter key to submit password
+        document.getElementById('admin-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyAdminPassword();
+            }
+        });
+    </script>
+</body>
+</html>
